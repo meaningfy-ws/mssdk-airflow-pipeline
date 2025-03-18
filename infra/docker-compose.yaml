@@ -1,0 +1,63 @@
+
+services:
+  postgres:
+    extends:
+      file: airflow/docker-compose.yaml
+      service: postgres
+
+  redis:
+    extends:
+      file: airflow/docker-compose.yaml
+      service: redis
+
+  airflow-webserver:
+    extends:
+      file: airflow/docker-compose.yaml
+      service: airflow-webserver
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.airflow.rule=Host(`airflow.localhost`)"
+      - "traefik.http.routers.airflow.entrypoints=web"
+      - "traefik.http.services.airflow.loadbalancer.server.port=8080"
+
+  airflow-scheduler:
+    extends:
+      file: airflow/docker-compose.yaml
+      service: airflow-scheduler
+
+  airflow-worker:
+    extends:
+      file: airflow/docker-compose.yaml
+      service: airflow-worker
+
+  airflow-triggerer:
+    extends:
+      file: airflow/docker-compose.yaml
+      service: airflow-triggerer
+
+  airflow-init:
+    extends:
+      file: airflow/docker-compose.yaml
+      service: airflow-init
+
+  airflow-cli:
+    extends:
+      file: airflow/docker-compose.yaml
+      service: airflow-cli
+
+  flower:
+    extends:
+      file: airflow/docker-compose.yaml
+      service: flower
+
+  traefik:
+    extends:
+      file: traefik/docker-compose.yml
+      service: traefik
+
+volumes:
+  postgres-db-volume:
+
+networks:
+  proxy-net:  # ✅ This ensures the network is created automatically
+    external: true

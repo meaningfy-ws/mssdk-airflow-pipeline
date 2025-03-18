@@ -1,0 +1,26 @@
+version: "3.3"
+
+services:
+  traefik:
+    image: traefik:v2.10
+    container_name: traefik
+    command:
+      - "--api.insecure=true" # Enable Traefik dashboard (insecure, only for testing)
+      - "--providers.docker=true" # Enable Docker provider
+      - "--entrypoints.web.address=:80" # Expose HTTP port
+      - "--entrypoints.websecure.address=:443" # Expose HTTPS port
+      - "--providers.docker.exposedbydefault=false"
+    ports:
+      - "80:80" # HTTP
+      - "443:443" # HTTPS
+      - "8080:8080" # Traefik Dashboard (insecure)
+    volumes:
+      - "/var/run/docker.sock:/var/run/docker.sock" # Allow Traefik to talk to Docker
+    networks:
+      - proxy-net
+
+
+
+networks:
+  proxy-net:
+    external: true
