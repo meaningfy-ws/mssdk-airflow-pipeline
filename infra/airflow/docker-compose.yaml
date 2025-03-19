@@ -72,7 +72,22 @@ x-airflow-common:
     _PIP_ADDITIONAL_REQUIREMENTS: ${_PIP_ADDITIONAL_REQUIREMENTS:-}
     # The following line can be used to set a custom config file, stored in the local config folder
     # If you want to use it, outcomment it and replace airflow.cfg with the name of your config file
-    # AIRFLOW_CONFIG: '/opt/airflow/config/airflow.cfg'
+    #AIRFLOW_CONFIG: '/opt/airflow/config/airflow.cfg'
+
+    AIRFLOW__METRICS__OTEL_ON: True
+    AIRFLOW__METRICS__OTEL_HOST: otel-collector
+    AIRFLOW__METRICS__OTEL_PORT: 4318
+    AIRFLOW__METRICS__OTEL_INTERVAL_MILLISECONDS: 30000
+    AIRFLOW__METRICS__STATSD_ON: False
+#    AIRFLOW__METRICS__METRICS_BLOCK_LIST: "pool,triggerer,celery"
+
+    AIRFLOW__TRACES__OTEL_ON: True
+    AIRFLOW__TRACES__OTEL_HOST: otel-collector
+    AIRFLOW__TRACES__OTEL_PORT: 4318
+    AIRFLOW__TRACES__OTEL_SERVICE: "airflow"
+    AIRFLOW__TRACES__OTEL_DEBUGGING_ON: False
+    AIRFLOW__TRACES__OTEL_TASK_LOG_EVENT: True
+
   volumes:
     - ./.airflow/dags:/opt/airflow/dags
     - ./.airflow/logs:/opt/airflow/logs
@@ -80,6 +95,7 @@ x-airflow-common:
     - ./.airflow/plugins:/opt/airflow/plugins
     - ./.airflow/requirements.txt:/opt/airflow/requirements.txt
     - ./.airflow/.env:/opt/airflow/.env
+    #- ./airflow.cfg:/opt/airflow/config/airflow.cfg
   user: "${AIRFLOW_UID:-50000}:0"
   env_file:
     - ./.airflow/.env
@@ -106,7 +122,7 @@ services:
       start_period: 5s
     restart: always
     networks:
-      - proxy-net
+      - mssdk-network
 
   redis:
     # Redis is limited to 7.2-bookworm due to licencing change
@@ -114,6 +130,8 @@ services:
     image: redis:7.2-bookworm
     expose:
       - 6379
+    volumes:
+      - redis-data:/data
     healthcheck:
       test: [ "CMD", "redis-cli", "ping" ]
       interval: 10s
@@ -122,7 +140,7 @@ services:
       start_period: 30s
     restart: always
     networks:
-      - proxy-net
+      - mssdk-network
 
   airflow-webserver:
     <<: *airflow-common
@@ -133,7 +151,7 @@ services:
       airflow-init:
         condition: service_completed_successfully
     networks:
-      - proxy-net
+      - mssdk-network
 
   airflow-scheduler:
     <<: *airflow-common
@@ -150,16 +168,14 @@ services:
       airflow-init:
         condition: service_completed_successfully
     networks:
-      - proxy-net
+      - mssdk-network
 
   airflow-worker:
     <<: *airflow-common
     command: celery worker
     healthcheck:
       # yamllint disable rule:line-length
-      test:
-        - "CMD-SHELL"
-        - 'celery --app airflow.providers.celery.executors.celery_executor.app inspect ping -d "celery@$${HOSTNAME}" || celery --app airflow.executors.celery_executor.app inspect ping -d "celery@$${HOSTNAME}"'
+      test: ["CMD-SHELL", "celery --app airflow.providers.celery.executors.celery_executor.app inspect ping -d \"celery@$${HOSTNAME}\" || celery --app airflow.executors.celery_executor.app inspect ping -d \"celery@$${HOSTNAME}\""]
       interval: 30s
       timeout: 10s
       retries: 5
@@ -175,7 +191,7 @@ services:
       airflow-init:
         condition: service_completed_successfully
     networks:
-      - proxy-net
+      - mssdk-network
 
   airflow-triggerer:
     <<: *airflow-common
@@ -192,7 +208,7 @@ services:
       airflow-init:
         condition: service_completed_successfully
     networks:
-      - proxy-net
+      - mssdk-network
 
   airflow-init:
     <<: *airflow-common
@@ -255,10 +271,10 @@ services:
       _AIRFLOW_WWW_USER_PASSWORD: ${_AIRFLOW_WWW_USER_PASSWORD:-airflow}
       _PIP_ADDITIONAL_REQUIREMENTS: ''
     user: "0:0"
-    volumes:
-      - ${AIRFLOW_PROJ_DIR:-.}:/sources
+#    volumes:
+#      - ${AIRFLOW_PROJ_DIR:-.}:/sources
     networks:
-      - proxy-net
+      - mssdk-network
 
   airflow-cli:
     <<: *airflow-common
@@ -273,7 +289,7 @@ services:
       - -c
       - airflow
     networks:
-      - proxy-net
+      - mssdk-network
 
   # You can enable flower by adding "--profile flower" option e.g. docker-compose --profile flower up
   # or by explicitly targeted on the command line e.g. docker-compose up flower.
@@ -283,8 +299,8 @@ services:
     command: celery flower
     profiles:
       - flower
-    ports:
-      - "5555:5555"
+    expose:
+      - "5555"
     healthcheck:
       test: [ "CMD", "curl", "--fail", "http://localhost:5555/" ]
       interval: 30s
@@ -297,12 +313,12 @@ services:
       airflow-init:
         condition: service_completed_successfully
     networks:
-      - proxy-net
-
+      - mssdk-network
 
 networks:
-  proxy-net:
-    external: true
+  mssdk-network:
+    driver: bridge
 
 volumes:
   postgres-db-volume:
+  redis-data:

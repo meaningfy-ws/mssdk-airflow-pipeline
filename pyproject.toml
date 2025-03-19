@@ -5,6 +5,6 @@ description = "Add your description here"
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
-    "apache-airflow>=2.10.5",
+    "apache-airflow[otel]>=2.10.5",
     "apache-airflow-providers-mongo>=5.0.2",
 ]

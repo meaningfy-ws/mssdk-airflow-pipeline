@@ -11,9 +11,8 @@ ICON_PROGRESS = [-]
 ENV_FILE := .env
 -include .env
 
-
-build-airflow: guard-ENVIRONMENT guard-ENV_FILE create-env-airflow
-	@ docker-compose -p ${ENVIRONMENT} --file ./infra/docker-compose.yaml --env-file ${ENV_FILE} up -d --force-recreate --build
+build: guard-ENVIRONMENT guard-ENV_FILE create-env-airflow
+	@ docker-compose -p ${ENVIRONMENT}-${SUBDOMAIN} --file ./infra/docker-compose.yaml --env-file ${ENV_FILE} up -d --force-recreate --build
 
 
 create-env-airflow: guard-PROJECT_PATH guard-AIRFLOW_PROJ_DIR guard-ENVIRONMENT
@@ -24,7 +23,7 @@ create-env-airflow: guard-PROJECT_PATH guard-AIRFLOW_PROJ_DIR guard-ENVIRONMENT
 	@ mkdir -p ${AIRFLOW_PROJ_DIR}/config
 	@ mkdir -p ${AIRFLOW_PROJ_DIR}/plugins
 
-	@ uv pip compile pyproject.toml -o ${AIRFLOW_PROJ_DIR}/requirements.txt
+	@ uv pip compile pyproject.toml -o ${AIRFLOW_PROJ_DIR}/requirements.txt > /dev/null
 	@ ln -s -f ${PROJECT_PATH}/.env ${AIRFLOW_PROJ_DIR}/.env
 	@ ln -s -f -n ${PROJECT_PATH}/dags ${AIRFLOW_PROJ_DIR}/dags
 
@@ -39,3 +38,6 @@ guard-%:
         echo -e "$(BUILD_PRINT)$(ICON_ERROR) Environment variable $* not set. Please set .env file $(END_BUILD_PRINT)"; \
         exit 1; \
 	fi
+
+
+.PHONY: build create-env-airflow guard-%
