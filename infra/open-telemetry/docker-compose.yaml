@@ -1,7 +1,7 @@
 version: '3'
 services:
   otel-collector:
-    image: otel/opentelemetry-collector-contrib:latest
+    image: otel/opentelemetry-collector-contrib:0.122.1
     labels:
       breeze.description: "Integration required for OTEL/opentelemetry hooks."
     command: [ --config=/etc/otel-collector-config.yml ]
