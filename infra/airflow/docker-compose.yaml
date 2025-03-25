@@ -88,6 +88,13 @@ x-airflow-common:
     AIRFLOW__TRACES__OTEL_DEBUGGING_ON: False
     AIRFLOW__TRACES__OTEL_TASK_LOG_EVENT: True
 
+    AIRFLOW__OPENLINEAGE__TRANSPORT: '{"type": "http", "url": "http://marquez:5000", "endpoint": "api/v1/lineage"}'
+    # AIRFLOW__OPENLINEAGE__TRANSPORT: '{"type": "console"}'
+  #  AIRFLOW__LINEAGE__TRANSPORT: '{"type": "console"}'
+#    AIRFLOW__OPENLINEAGE__NAMESPACE: 'airflow-namespace'
+#    AIRFLOW__LINEAGE__BACKEND: 'openlineage.airflow.backend.OpenLineageBackend'
+#    AIRFLOW__LINEAGE__BACKEND:
+
   volumes:
     - ./.airflow/dags:/opt/airflow/dags
     - ./.airflow/logs:/opt/airflow/logs
@@ -109,10 +116,8 @@ x-airflow-common:
 services:
   postgres:
     image: postgres:13
-    environment:
-      POSTGRES_USER: airflow
-      POSTGRES_PASSWORD: airflow
-      POSTGRES_DB: airflow
+    expose:
+      - "5432"
     volumes:
       - postgres-db-volume:/var/lib/postgresql/data
     healthcheck:
