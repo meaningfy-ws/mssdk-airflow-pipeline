@@ -1,7 +1,7 @@
 version: '3'
 services:
   tempo:
-    image: grafana/tempo:latest
+    image: grafana/tempo:2.7.1
     command: [ "-config.file=/etc/tempo.yaml" ]
     volumes:
       - ./tempo-config.yaml:/etc/tempo.yaml
@@ -12,7 +12,7 @@ services:
       - mssdk-network
 
   prometheus:
-    image: prom/prometheus:latest
+    image: prom/prometheus:v3.2.1
     restart: always
     volumes:
       - ./prometheus.yml:/etc/prometheus/prometheus.yml
@@ -25,7 +25,7 @@ services:
       - mssdk-network
 
   grafana:
-    image: grafana/grafana:latest
+    image: grafana/grafana:11.5.2
     expose:
       - "3000"
     environment:
@@ -36,8 +36,6 @@ services:
       - GF_INSTALL_PLUGINS=https://storage.googleapis.com/integration-artifacts/grafana-exploretraces-app/grafana-exploretraces-app-latest.zip;grafana-traces-app
     volumes:
       - ./grafana-datasources.yaml:/etc/grafana/provisioning/datasources/datasources.yaml
-    depends_on:
-      - tempo
     networks:
       - mssdk-network
 

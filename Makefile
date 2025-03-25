@@ -11,9 +11,14 @@ ICON_PROGRESS = [-]
 ENV_FILE := .env
 -include .env
 
-build: guard-ENVIRONMENT guard-ENV_FILE create-env-airflow
+build: guard-ENVIRONMENT guard-ENV_FILE create-env-airflow create-env-marquez
 	@ docker-compose -p ${ENVIRONMENT}-${SUBDOMAIN} --file ./infra/docker-compose.yaml --env-file ${ENV_FILE} up -d --force-recreate --build
 
+build-%:
+	@ docker-compose -p ${ENVIRONMENT}-${SUBDOMAIN} --file ./infra/docker-compose.yaml --env-file ${ENV_FILE} up -d --force-recreate --build $*
+
+create-env-marquez: guard-PROJECT_PATH
+	@ chmod 777 ${PROJECT_PATH}/infra/marquez/wait-for-it.sh
 
 create-env-airflow: guard-PROJECT_PATH guard-AIRFLOW_PROJ_DIR guard-ENVIRONMENT
 	@ echo -e "$(BUILD_PRINT)$(ICON_PROGRESS) Creating/Updating Airflow environment $(END_BUILD_PRINT)"

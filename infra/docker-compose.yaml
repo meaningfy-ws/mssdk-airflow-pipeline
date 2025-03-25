@@ -6,7 +6,7 @@ services:
     container_name: ${ENVIRONMENT}-${SUBDOMAIN}-traefik
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.traefik.rule=Host(`traefik.${SUBDOMAIN}.${DOMAIN}`)"
+      - "traefik.http.routers.traefik.rule=Host(`traefik.${ENVIRONMENT}.${DOMAIN}`)"
       - "traefik.http.routers.traefik.service=api@internal"
 
   postgres:
@@ -14,6 +14,10 @@ services:
       file: airflow/docker-compose.yaml
       service: postgres
     container_name: ${ENVIRONMENT}-${SUBDOMAIN}-postgres
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_USER}
 
   redis:
     extends:
@@ -28,9 +32,11 @@ services:
     container_name: ${ENVIRONMENT}-${SUBDOMAIN}-airflow-webserver
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.airflow.rule=Host(`airflow.${SUBDOMAIN}.${DOMAIN}`)"
+      - "traefik.http.routers.airflow.rule=Host(`airflow.${ENVIRONMENT}.${DOMAIN}`)"
       - "traefik.http.routers.airflow.entrypoints=web"
       - "traefik.http.services.airflow.loadbalancer.server.port=${AIRFLOW_PORT}"
+    depends_on:
+      - traefik
 
   airflow-scheduler:
     extends:
@@ -90,11 +96,11 @@ services:
     container_name: ${ENVIRONMENT}-${SUBDOMAIN}-grafana
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.grafana.rule=Host(`grafana.${SUBDOMAIN}.${DOMAIN}`)"
+      - "traefik.http.routers.grafana.rule=Host(`grafana.${ENVIRONMENT}.${DOMAIN}`)"
       - "traefik.http.routers.grafana.entrypoints=web"
       - "traefik.http.services.grafana.loadbalancer.server.port=${GRAFANA_PORT}"
     depends_on:
-      - tempo
+      - traefik
 
   prometheus:
     extends:
@@ -102,11 +108,38 @@ services:
       service: prometheus
     container_name: ${ENVIRONMENT}-${SUBDOMAIN}-prometheus
 
+  marquez:
+    extends:
+      file: marquez/docker-compose.yaml
+      service: marquez
+    container_name: ${ENVIRONMENT}-${SUBDOMAIN}-marquez
+
+  marquez-web:
+    extends:
+      file: marquez/docker-compose.yaml
+      service: marquez-web
+    container_name: ${ENVIRONMENT}-${SUBDOMAIN}-marquez-web
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.marquez-web.rule=Host(`marquez.${ENVIRONMENT}.${DOMAIN}`)"
+      - "traefik.http.routers.marquez-web.entrypoints=web"
+      - "traefik.http.services.marquez-web.loadbalancer.server.port=${MARQUEZ_WEB_PORT}"
+    depends_on:
+      - traefik
+
+  marquez-postgres:
+    extends:
+      file: marquez/docker-compose.yaml
+      service: marquez-postgres
+    container_name: ${ENVIRONMENT}-${SUBDOMAIN}-marquez-postgres
+
 volumes:
   postgres-db-volume:
   tempo-data:
   prometheus-data:
   redis-data:
+  marquez-data:
+  marquez-postgres-data:
 
 networks:
   mssdk-network:
