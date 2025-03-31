@@ -7,7 +7,7 @@ from airflow.providers.common.sql.operators.sql import SQLExecuteQueryOperator
 
 @dag(
     catchup=False,
-    is_paused_upon_creation=False,
+    is_paused_upon_creation=True,
     max_active_runs=1,
     schedule=Dataset("default"),
     start_date=datetime.now()

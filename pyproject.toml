@@ -9,3 +9,8 @@ dependencies = [
     "apache-airflow-providers-openlineage>=2.1.1",
     "apache-airflow-providers-postgres>=6.1.1",
 ]
+
+[dependency-groups]
+dev = [
+    "pytest>=8.3.5",
+]
