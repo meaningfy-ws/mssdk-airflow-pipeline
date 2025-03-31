@@ -1,0 +1,16 @@
+[project]
+name = "mssdk-airflow-pipeline"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "apache-airflow-providers-mongo>=5.0.2",
+    "apache-airflow-providers-openlineage>=2.1.1",
+    "apache-airflow-providers-postgres>=6.1.1",
+]
+
+[dependency-groups]
+dev = [
+    "pytest>=8.3.5",
+]

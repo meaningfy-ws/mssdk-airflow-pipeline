@@ -1,0 +1,17 @@
+version: '3'
+services:
+  otel-collector:
+    image: otel/opentelemetry-collector-contrib:0.122.1
+    labels:
+      breeze.description: "Integration required for OTEL/opentelemetry hooks."
+    command: [ --config=/etc/otel-collector-config.yml ]
+    volumes:
+      - ./otel-collector-config.yml:/etc/otel-collector-config.yml
+    expose:
+      - "4318"
+    networks:
+      - mssdk-network
+
+networks:
+  mssdk-network:
+    driver: bridge
