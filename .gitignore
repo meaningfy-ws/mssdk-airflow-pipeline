@@ -172,3 +172,7 @@ cython_debug/
 
 # Project specific
 infra/airflow/.airflow
+dags/sources/input_mp
+dags/sources/input_notice
+dags/sources/output_rdf
+.rmlmapper
