@@ -95,6 +95,8 @@ x-airflow-common:
 #    AIRFLOW__LINEAGE__BACKEND: 'openlineage.airflow.backend.OpenLineageBackend'
 #    AIRFLOW__LINEAGE__BACKEND:
 
+    #AIRFLOW_CONN_FS_DEFAULT: '{"conn_type": "fs", "path": "/opt/airflow/dags/sources"}'
+    AIRFLOW_CONN_FS_DEFAULT: 'file:///opt/airflow/dags/sources'
   volumes:
     - ./.airflow/dags:/opt/airflow/dags
     - ./.airflow/logs:/opt/airflow/logs
@@ -102,10 +104,15 @@ x-airflow-common:
     - ./.airflow/plugins:/opt/airflow/plugins
     - ./.airflow/requirements.txt:/opt/airflow/requirements.txt
     - ./.airflow/.env:/opt/airflow/.env
+
+    - ./.airflow/.rmlmapper:/opt/airflow/.rmlmapper
+   # - ./.airflow/dags/sources:/opt/airflow/dags/sources
+    - ./.airflow/mssdk_airflow_pipeline:/opt/airflow/mssdk_airflow_pipeline
     #- ./airflow.cfg:/opt/airflow/config/airflow.cfg
   user: "${AIRFLOW_UID:-50000}:0"
   env_file:
     - ./.airflow/.env
+  #command: bash -c "export PYTHONPATH='/opt/airflow/'"
   depends_on:
     &airflow-common-depends-on
     redis:
