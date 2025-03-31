@@ -2,7 +2,7 @@ version: "3.8"
 services:
 
   marquez:
-    image: marquezproject/marquez:0.50.0
+    image: marquezproject/marquez:0.51.0
     environment:
       - POSTGRES_HOST=marquez-postgres
       - POSTGRES_PORT=5432
@@ -20,7 +20,7 @@ services:
       - mssdk-network
 
   marquez-web:
-    image: marquezproject/marquez-web:0.50.0
+    image: marquezproject/marquez-web:0.51.0
     environment:
       - MARQUEZ_HOST=marquez
       - MARQUEZ_PORT=5000
